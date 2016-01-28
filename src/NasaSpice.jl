@@ -52,10 +52,6 @@ function codeForPlane( phase::AbstractString, name::AbstractString, ctype::Abstr
 end
 
 
-function codeForAbstractString256( phase::AbstractString, name::AbstractString, ctype::AbstractString )
-    codeForAbstractString( phase, name, 256 )
-end
-
 function codeForAbstractString( phase::AbstractString, name::AbstractString, maxLength::Int64 )
     str = Array(AbstractString,0)
     # Array{UInt8}(32)
@@ -64,12 +60,18 @@ function codeForAbstractString( phase::AbstractString, name::AbstractString, max
     elseif phase == "allocate" # allocate output structure, convert to stream and pointer
         str = vcat( str, name * "_array = Array{UInt8}(" * string(maxLength) * ")" )
         str = vcat( str, name * "_ptr = pointer( " * name * "_array )" )
+# warning on 63 is really in StrPack.jl @34 STRUCT_REGISTRY
     elseif phase == "unpack"   # convert output structure from stream
         name = replace( name, "_ptr", "")
         str = vcat( str, name * " = bytestring( " * name * "_ptr )" )
     end
     return str
 end
+
+function codeForAbstractString256( phase::AbstractString, name::AbstractString, ctype::AbstractString )
+    codeForAbstractString( phase, name, 256 )
+end
+
 
 
 function code( phase::AbstractString, structure::AbstractString, name::AbstractString, ctype::AbstractString )
