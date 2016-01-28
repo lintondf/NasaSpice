@@ -25,7 +25,7 @@ const libNasaSpice = Pkg.dir("NasaSpice", "deps", "libcspice")
 end
 Base.convert(::Type{Ellipse}) = Ellipse([0.0,0.0,0.0],[0.0,0.0,0.0],[0.0,0.0,0.0])
 
-function codeForEllipse( phase::String, name::String, ctype::String )
+function codeForEllipse( phase::AbstractString, name::AbstractString, ctype::AbstractString )
     return code( phase, "Ellipse", name, ctype );
 end
 
@@ -47,20 +47,20 @@ end
     constant::Float64;
 end
 Base.convert(::Type{Plane}) = Plane([0.0,0.0,0.0],0.0)
-function codeForPlane( phase::String, name::String, ctype::String )
+function codeForPlane( phase::AbstractString, name::AbstractString, ctype::AbstractString )
     return code( phase, "Plane", name, ctype );
 end
 
 
-function codeForString256( phase::String, name::String, ctype::String )
-    codeForString( phase, name, 256 )
+function codeForAbstractString256( phase::AbstractString, name::AbstractString, ctype::AbstractString )
+    codeForAbstractString( phase, name, 256 )
 end
 
-function codeForString( phase::String, name::String, maxLength::Int64 )
-    str = Array(String,0)
+function codeForAbstractString( phase::AbstractString, name::AbstractString, maxLength::Int64 )
+    str = Array(AbstractString,0)
     # Array{UInt8}(32)
     if phase == "pack" # convert input structure to stream and pointer
-        error("codeForString does not implement 'pack'")
+        error("codeForAbstractString does not implement 'pack'")
     elseif phase == "allocate" # allocate output structure, convert to stream and pointer
         str = vcat( str, name * "_array = Array{UInt8}(" * string(maxLength) * ")" )
         str = vcat( str, name * "_ptr = pointer( " * name * "_array )" )
@@ -72,8 +72,8 @@ function codeForString( phase::String, name::String, maxLength::Int64 )
 end
 
 
-function code( phase::String, structure::String, name::String, ctype::String )
-    str = Array(String,0)
+function code( phase::AbstractString, structure::AbstractString, name::AbstractString, ctype::AbstractString )
+    str = Array(AbstractString,0)
     if phase == "pack" # convert input structure to stream and pointer
         str = vcat( str, "io" * name * " = IOBuffer()" )
         str = vcat( str, "StrPack.pack( io" * name * ", " * name * ")" )
@@ -100,7 +100,12 @@ include("NasaSpiceApi_stringOut.jl")
 
 # Hand Conversions
 
-function setErrorAction( action::String )
+
+function resetError()
+    ccall((:reset_c,libNasaSpice),Void,())
+end
+
+function setErrorAction( action::AbstractString )
     ccall((:erract_c,libNasaSpice),Void,(Ptr{UInt8},Int64,Ptr{UInt8}),
     "SET",length(action),action)
 end
@@ -126,7 +131,7 @@ include("cspice.jl")
 
 ##include("/home/don/xf2eul.jl")
 
-function furnsh_c(file::String)
+function furnsh_c(file::AbstractString)
     ccall((:furnsh_c,libNasaSpice),Void,(Ptr{UInt8},),file)
 end
 
@@ -157,7 +162,7 @@ end
 #end
 
 
-#function str2et( date::String )
+#function str2et( date::AbstractString )
 #    et = Array(SpiceDouble,1)
 #    ccall((:str2et_c,libNasaSpice),Void,(Ptr{ConstSpiceChar},Ptr{SpiceDouble}),
 #                date,
@@ -166,7 +171,7 @@ end
 #end
 
 
-#function sxform( from::String, to::String, et::Float64 )
+#function sxform( from::AbstractString, to::AbstractString, et::Float64 )
 #    xform = zeros(SpiceDouble, 6, 6);
 #    xformPtr = convert(Ptr{SpiceDouble}, pointer(xform))
 #    et_c = convert(SpiceDouble, et );
