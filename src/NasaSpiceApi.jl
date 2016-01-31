@@ -1129,16 +1129,19 @@
             maxn::Int32) # SpiceInt
         
 #       enforce input array sizes
-#       allocate the output parameters
+#       allocate the output parameters TODO use maxn
         values = Array{Float64}(1);  # Ptr{SpiceDouble}
+        values[1] = 3.14;
         values_ptr = pointer(values)
+        dims = Array{UInt32}(1);
+        dims_ptr = pointer(dims)
         
 #       make transposed copies of all input arrays and their pointers
         
 #       ccall((:bodvrd_c,"/home/don/.julia/v0.3/cspice.so"),Void,(Ptr{ConstSpiceChar},Ptr{ConstSpiceChar},SpiceInt,Ptr{SpiceInt},Ptr{SpiceDouble}),body,item,maxn,dim,values)
         ccall((:bodvrd_c,libNasaSpice),Void,
-            (Ptr{UInt8},Ptr{UInt8},Int32,Ptr{Float64}),
-            body,item,maxn,values_ptr)
+            (Ptr{UInt8},Ptr{UInt8},Int32,Ptr{Int32},Ptr{Float64}),
+            body,item,1,dims_ptr,values_ptr)
     
 #       unpack any structures and transpose back any returned arrays
         return values[1]
